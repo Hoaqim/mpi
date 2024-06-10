@@ -2,10 +2,26 @@
 #include "util.h"
 MPI_Datatype MPI_PAKIET_T;
 
+state_t stan=BeginPyrkon;
+
+pthread_mutex_t stateMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t clockMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t finishedMutex = PTHREAD_MUTEX_INITIALIZER;
+
 struct tagNames_t{
     const char *name;
     int tag;
-} tagNames[] = { { "pakiet aplikacyjny", APP_PKT }, { "finish", FINISH}};
+} tagNames[] = { 
+    { "pakiet aplikacyjny", APP_PKT }, 
+    { "start pyrkonu", PYRKON_START }, 
+    { "chcę bilet na pyrkon", WANT_PYRKON_TICKET }, 
+    { "potwierdzenie chęci biletu na pyrkon", WANT_PYRKON_TICKET_ACK }, 
+    { "chcę bilet na warsztat", WANT_WORKSHOP_TICKET }, 
+    { "potwierdzenie chęci biletu na warsztat", WANT_WORKSHOP_TICKET_ACK }, 
+    { "koniec warsztatu", WORKSHOP_FINISH }, 
+    { "koniec pyrkonu", PYRKON_FINISH }
+};
+
 
 const char const *tag2string( int tag )
 {
@@ -30,30 +46,45 @@ void inicjuj_typ_pakietu()
     offsets[0] = offsetof(packet_t, ts);
     offsets[1] = offsetof(packet_t, src);
     offsets[2] = offsetof(packet_t, data);
-
+    offsets[3] = offsetof(packet_t, workshop_id);
     MPI_Type_create_struct(NITEMS, blocklengths, offsets, typy, &MPI_PAKIET_T);
 
     MPI_Type_commit(&MPI_PAKIET_T);
 }
 
 /* opis patrz util.h */
-void sendPacket(packet_t *pkt, int destination, int tag)
-{
-    int freepkt=0;
-    if (pkt==0) { pkt = malloc(sizeof(packet_t)); freepkt=1;}
+void sendPacket(packet_t *pkt, int destination, int tag, int workshop_id_request) {
+    int freepkt = 0;
+    if (pkt == 0) {
+        pkt = (packet_t *)malloc(sizeof(packet_t));
+        freepkt = 1;
+    }
     pkt->src = rank;
-    MPI_Send( pkt, 1, MPI_PAKIET_T, destination, tag, MPI_COMM_WORLD);
-    debug("Wysyłam %s do %d\n", tag2string( tag), destination);
+    pkt->workshop_id = workshop_id_request;
+
+    pthread_mutex_lock(&clockMutex);
+    clock++;
+    pkt->ts = clock;
+    if(tag == REQUEST){
+        local_request_ts[rank][workshop_id][destination] = clock;
+    }
+    pthread_mutex_unlock(&clockMutex);
+
+    MPI_Send(pkt, 1, MPI_PAKIET_T, destination, tag, MPI_COMM_WORLD);
+    debug("Wysyłam %s do %d\n", tag2string(tag), destination);
     if (freepkt) free(pkt);
 }
 
+
+
 void changeState( state_t newState )
 {
-    pthread_mutex_lock( &stateMut );
+    pthread_mutex_lock( &stateMutex );
     if (stan==InFinish) { 
-	pthread_mutex_unlock( &stateMut );
+	pthread_mutex_unlock( &stateMutex );
         return;
     }
     stan = newState;
-    pthread_mutex_unlock( &stateMut );
+    pthread_mutex_unlock( &stateMutex );
 }
+
