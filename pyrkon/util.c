@@ -45,6 +45,7 @@ void inicjuj_typ_pakietu()
     offsets[1] = offsetof(packet_t, src);
     offsets[2] = offsetof(packet_t, data);
     offsets[3] = offsetof(packet_t, id_workshopu);
+    
     MPI_Type_create_struct(NITEMS, blocklengths, offsets, typy, &MPI_PAKIET_T);
 
     MPI_Type_commit(&MPI_PAKIET_T);
@@ -63,7 +64,7 @@ void sendPacket(packet_t *pkt, int destination, int tag, int workshop_id_request
     pthread_mutex_lock(&clockMutex);
     clock++;
     pkt->ts = clock;
-    if(tag == REQUEST){
+    if(tag == WANT_TICKET){
         local_request_ts[rank][id_workshopu][destination] = clock;
     }
     pthread_mutex_unlock(&clockMutex);
