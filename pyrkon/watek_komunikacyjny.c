@@ -34,11 +34,12 @@ void *startKomWatek(void *ptr)
                 //Akcept na bilet na pyrkon
             } else{
                 //Akcept na bilet na warsztat
+                println("Dostałem ACK od %d na warsztat %d", status.MPI_SOURCE, workshop_id);
             }
         }
         //Jak zaakceptowany na aktualnie przetwarzany warsztat
         if(status.MPI_TAG == WANT_TICKET_ACK && pakiet.id_workshopu == id_workshopu){
-            zaakceptowani[rank] += 1; //chyba 
+            zaakceptowani[rank] += 1; //chyba git jest to
         }
         else if(status.MPI_TAG == WANT_TICKET){
             if(pakiet.id_workshopu == 0){
@@ -57,7 +58,7 @@ void *startKomWatek(void *ptr)
 
             }   
         } else if(status.MPI_TAG == FINISH)
-            zakończono[rank] += 1
+            finished[rank] += 1
         }
 
 

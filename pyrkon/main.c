@@ -2,10 +2,28 @@
 #include "watek_glowny.h"
 #include "watek_komunikacyjny.h"
 
-int rank, size;
+int rank, size, id_workshopu;
 state_t stan=InRun;
-pthread_t threadKom, threadMon;
-pthread_mutex_t stateMut = PTHREAD_MUTEX_INITIALIZER;
+pthread_t threadKom;
+pthread_mutex_t clockMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t finishedMutex = PTHREAD_MUTEX_INITIALIZER;
+
+
+int clock=0;
+int number_of_tickets=10; // liczba biletów na pyrkon
+int number_of_workshops=14; 
+int number_of_people_per_workshop = 3; 
+int number_of_participants = 14;
+int number_of_workshops_per_participant=2; 
+int zaakceptowani[MAX_PARTICIPANTS];
+int waiting_queue[MAX_WORKSHOPS + 1][MAX_PARTICIPANTS]; //waiting for ticket for warsztat or pyrkon
+int indexes_for_waiting_queue[MAX_WORKSHOPS + 1]; //ich indeksy
+int workshop_count[MAX_PARTICIPANTS];
+int my_workshops[MAX_PARTICIPANTS][MAX_WORKSHOPS + 1];
+int on_pyrkon[MAX_PARTICIPANTS];
+int local_request_ts[MAX_PARTICIPANTS][MAX_WORKSHOPS + 1][MAX_PARTICIPANTS];
+int finished[MAX_PARTICIPANTS];
+
 
 void finalizuj()
 {
@@ -15,6 +33,15 @@ void finalizuj()
     pthread_join(threadKom,NULL);
     MPI_Type_free(&MPI_PAKIET_T);
     MPI_Finalize();
+
+    memset(number_of_acks, 0, sizeof(number_of_acks));
+    memset(waiting_queue, 0, sizeof(waiting_queue));
+    memset(indexes_for_waiting_queue, 0, sizeof(indexes_for_waiting_queue));
+    memset(workshop_count, 0, sizeof(workshop_count));
+    memset(my_workshops, 0, sizeof(my_workshops));
+    memset(on_pyrkon, 0, sizeof(on_pyrkon));
+    memset(local_request_ts, 0, sizeof(local_request_ts));
+    memset(finished, 0, sizeof(finished));
 }
 
 void check_thread_support(int provided)

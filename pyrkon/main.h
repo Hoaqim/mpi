@@ -14,16 +14,33 @@
 #define FALSE 0
 #define SEC_IN_STATE 1
 #define STATE_CHANGE_PROB 10
-
-#define ROOT 0
+#define MAX_PARTICIPANTS 14
+#define MAX_WORKSHOPS 16
 
 extern int rank;
 extern int size;
+extern int id_workshopu;
+extern int clock;
+extern int number_of_tickets;
+extern int number_of_workshops;
+extern int number_of_people_per_workshop;
+extern int number_of_participants;
+extern int number_of_workshops_per_participant;
+extern int zaakceptowani[MAX_PARTICIPANTS];
+extern int waiting_queue[MAX_WORKSHOPS + 1][MAX_PARTICIPANTS]; //waiting for ticket for warsztat or pyrkon
+extern int indexes_for_waiting_queue[MAX_WORKSHOPS + 1]; //ich indeksy
+extern int workshop_count[MAX_PARTICIPANTS];
+extern int my_workshops[MAX_PARTICIPANTS][MAX_WORKSHOPS + 1];
+extern int on_pyrkon[MAX_PARTICIPANTS];
+extern int local_request_ts[MAX_PARTICIPANTS][MAX_WORKSHOPS + 1][MAX_PARTICIPANTS];
+extern int finished[MAX_PARTICIPANTS];
+
 typedef enum {InRun, InMonitor, InSend, InFinish} state_t;
 extern state_t stan;
-extern pthread_t threadKom, threadMon;
+extern pthread_t threadKom;
 
-extern pthread_mutex_t stateMut;
+extern pthread_mutex_t clockMutex;
+extern pthread_mutex_t finishMutex;
 
 
 
