@@ -20,7 +20,6 @@ int waiting_queue[MAX_WORKSHOPS + 1][MAX_PARTICIPANTS]; //waiting for ticket for
 int indexes_for_waiting_queue[MAX_WORKSHOPS + 1]; //ich indeksy
 int workshop_count[MAX_PARTICIPANTS];
 int my_workshops[MAX_PARTICIPANTS][MAX_WORKSHOPS + 1];
-int on_pyrkon[MAX_PARTICIPANTS];
 int local_request_ts[MAX_PARTICIPANTS][MAX_WORKSHOPS + 1][MAX_PARTICIPANTS];
 int finished[MAX_PARTICIPANTS];
 
@@ -39,7 +38,6 @@ void finalizuj()
     memset(indexes_for_waiting_queue, 0, sizeof(indexes_for_waiting_queue));
     memset(workshop_count, 0, sizeof(workshop_count));
     memset(my_workshops, 0, sizeof(my_workshops));
-    memset(on_pyrkon, 0, sizeof(on_pyrkon));
     memset(local_request_ts, 0, sizeof(local_request_ts));
     memset(finished, 0, sizeof(finished));
 }
