@@ -14,10 +14,8 @@ struct tagNames_t{
 } tagNames[] = { 
     { "pakiet aplikacyjny", APP_PKT }, 
     { "start pyrkonu", PYRKON_START }, 
-    { "chcę bilet na pyrkon", WANT_PYRKON_TICKET }, 
-    { "potwierdzenie chęci biletu na pyrkon", WANT_PYRKON_TICKET_ACK }, 
-    { "chcę bilet na warsztat", WANT_WORKSHOP_TICKET }, 
-    { "potwierdzenie chęci biletu na warsztat", WANT_WORKSHOP_TICKET_ACK }, 
+    { "chcę bilet", WANT_TICKET }, 
+    { "potwierdzenie chęci biletu na warsztat", WANT_TICKET_ACK }, 
     { "koniec warsztatu", WORKSHOP_FINISH }, 
     { "koniec pyrkonu", PYRKON_FINISH }
 };
@@ -46,7 +44,7 @@ void inicjuj_typ_pakietu()
     offsets[0] = offsetof(packet_t, ts);
     offsets[1] = offsetof(packet_t, src);
     offsets[2] = offsetof(packet_t, data);
-    offsets[3] = offsetof(packet_t, workshop_id);
+    offsets[3] = offsetof(packet_t, id_workshopu);
     MPI_Type_create_struct(NITEMS, blocklengths, offsets, typy, &MPI_PAKIET_T);
 
     MPI_Type_commit(&MPI_PAKIET_T);
@@ -60,13 +58,13 @@ void sendPacket(packet_t *pkt, int destination, int tag, int workshop_id_request
         freepkt = 1;
     }
     pkt->src = rank;
-    pkt->workshop_id = workshop_id_request;
+    pkt->id_workshopu = workshop_id_request;
 
     pthread_mutex_lock(&clockMutex);
     clock++;
     pkt->ts = clock;
     if(tag == REQUEST){
-        local_request_ts[rank][workshop_id][destination] = clock;
+        local_request_ts[rank][id_workshopu][destination] = clock;
     }
     pthread_mutex_unlock(&clockMutex);
 
