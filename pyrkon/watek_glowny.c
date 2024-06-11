@@ -38,7 +38,6 @@ void mainLoop()
 		id_workshopu = my_workshops[rank][workshop_count[rank]];
 	switch (stan) {
 		case beginPyrkon:
-		printf("heja %d\n", number_of_workshops_per_participant);
 		my_workshops[rank][0] = 0;
 		for (int i=1;i<=number_of_workshops_per_participant;i++){
 			int candidate = random()%number_of_workshops + 1;
@@ -48,21 +47,17 @@ void mainLoop()
 					j = 0;
 				}
 			}
-			printf("dziko %d %d\n", rank, i);
 			my_workshops[rank][i] = candidate;
 		}
-				printf("heja \n");
 
 		for (int i=0;i<=number_of_workshops_per_participant;i++){
 			println("%d: Mój warsztat %d\n",rank ,my_workshops[rank][i]);
 		}
-		printf("heja2\n");
 		fflush(0);
-		changeState(InRun);
+		changeState(duringPyrkon);
 
-	    case InRun: 
-		perc = random()%100;
-		if ( perc < 25 ) {
+	    case duringPyrkon: 
+		
 		    debug("Perc: %d", perc);
 			if(workshop_count[rank] == 0){
 				println("Chcę wejść na pyrkon")
@@ -77,12 +72,12 @@ void mainLoop()
 		    zaakceptowani[rank] = 0;
 		    for (int i=0;i<=size-1;i++)
 			if (i!=rank){
-			    sendPacket(pkt, i, REQUEST, pkt->id_workshopu);
+			    sendPacket(pkt, i, REQUEST_TICKET, pkt->id_workshopu);
 				if(pkt->id_workshopu == 0){
-					// println("Wysyłam request na pyrkon do %d", i)
+					//request na bilet na pyrkon
 				}
 				else{
-					// println("Wysyłam request na warsztat %d do %d", pkt->id_workshopu, i)
+					// request na bilet na warsztat
 				}
 			}
 			if(workshop_count[rank] == 0){
@@ -91,36 +86,23 @@ void mainLoop()
 			else{
 				changeState(wantWorkshop);
 			}
-		    // changeState( InWant ); // w VI naciśnij ctrl-] na nazwie funkcji, ctrl+^ żeby wrócić
-					   // :w żeby zapisać, jeżeli narzeka że w pliku są zmiany
-					   // ewentualnie wciśnij ctrl+w ] (trzymasz ctrl i potem najpierw w, potem ]
-					   // między okienkami skaczesz ctrl+w i strzałki, albo ctrl+ww
-					   // okienko zamyka się :q
-					   // ZOB. regułę tags: w Makefile (naciśnij gf gdy kursor jest na nazwie pliku)
 		    free(pkt);
-		} // a skoro już jesteśmy przy komendach vi, najedź kursorem na } i wciśnij %  (niestety głupieje przy komentarzach :( )
-		debug("Skończyłem myśleć");
+		
+		//debug("Skończyłem myśleć");
 		break;
 
 	    case wantPyrkon:
-		// println("mój ack count: %d Czekam na wejście na pyrkon", zaakceptowani[rank])
-		// tutaj zapewne jakiś semafor albo zmienna warunkowa
-		// bo aktywne czekanie jest BUE
+		//czeka na accepty
 		if (zaakceptowani[rank] >= number_of_participants - number_of_tickets){
 			workshop_count[rank] += 1;
 			zaakceptowani[rank] = 0;
 			println("Jestem na pyrkonie")
-			on_pyrkon[rank] = 1;
-			for(int i=0;i<indexes_for_waiting_queue[0];i++){
-				// println("w kolejce na pyrkonie %d", waiting_queue[0][i])
-			}	
-		    changeState(InRun);
+			on_pyrkon[rank] = 1;	
+		    changeState(duringPyrkon);
 		} 
 		break;
 		case wantWorkshop:
 		println("mój ack_count %d Czekam na wejście na warsztat %d", zaakceptowani[rank],id_workshopu)
-		// tutaj zapewne jakiś semafor albo zmienna warunkowa
-		// bo aktywne czekanie jest BUE
 		if (zaakceptowani[rank] >= number_of_participants - number_of_people_per_workshop){
 			println("Jestem na warsztacie %d", id_workshopu)
 			zaakceptowani[rank] = 0;
@@ -129,29 +111,23 @@ void mainLoop()
 		}
 		break;
 		case duringWorkshop:
-		// tutajd zapewne jakiś muteks albo zmienna warunkowa
-		    sleep(5);
-		//if ( perc < 25 ) {
-		    debug("Perc: %d", perc);
+			sleep(2);
+		    //debug("Perc: %d", perc);
 			previous_workshop_id = my_workshops[rank][workshop_count[rank]-1];
 		    println("Wychodzę z warsztatu %d", previous_workshop_id)
 		    debug("Zmieniam stan na wysyłanie");
 		    
 		    pkt->data = perc;
-			// pthread_mutex_lock(&zegarMut);
-		    // zegar += 1;
-			// pthread_mutex_unlock(&zegarMut);
 			for (int i=0;i<=number_of_participants-1;i++){
 				if (i!=rank){
-					sendPacket( 0, i, RELEASE, previous_workshop_id);
+					sendPacket( 0, i, RELEASE_TICKET, previous_workshop_id); //Release ticket dla uczestników
 				}
 			}
 			for (int i=0;i<indexes_for_waiting_queue[previous_workshop_id];i++){
-				// println("wysylam ACK na warsztat %d do %d", previous_workshop_id,i);
-				sendPacket( 0, waiting_queue[previous_workshop_id][i], ACK, previous_workshop_id);
+				sendPacket( 0, waiting_queue[previous_workshop_id][i], ACCEPT_TICKET, previous_workshop_id); //Accept ticket dla kolejki
 			}
 			indexes_for_waiting_queue[previous_workshop_id] = 0;
-			if (workshop_count[rank] > number_of_workshops_per_participant){
+			if (workshop_count[rank] > number_of_workshops_per_participant){ //konczy wszystkie workshopy
 				println("Wychodzę z pyrkonu")
 				on_pyrkon[rank] = 0;
 				debug("Zmieniam stan na wysyłanie");
@@ -162,34 +138,27 @@ void mainLoop()
 				}
 				for (int i=0;i<indexes_for_waiting_queue[0];i++){
 					// println("wysylam ACK na pyrkon do %d", i);
-					sendPacket( 0, waiting_queue[id_workshopu][i], ACK, 0);
+					sendPacket( 0, waiting_queue[id_workshopu][i], ACCEPT_TICKET, 0); //accept dla wszystkich czekajacych na pyrkon
 				}
 				indexes_for_waiting_queue[0] = 0;
 				changeState(finishedWorkshops);
 			}
 			else{
-				changeState( InRun );
+				changeState( duringPyrkon );
 			}
 		    // free(pkt);
 		break;
 		case finishedWorkshops:
-			println("Koniec pyrkonu dla mnie")
+			println("Wychodzę z Pyrkonu i idę do domu.")
 			while(finished[rank] < number_of_participants-1){
 
 			}
-			//MPI_Barrier(MPI_COMM_WORLD);
-			//if(rank==1){
-				reset_variables();
-			//}
+			
+			reset_variables();
 			println("KONIEC PYRKONU!!!")
-			/*for (int i = 0; i < number_of_participants; i++) {
-				println(" moj ack %d",zaakceptowani[i]);
-				println(" moj workshop_count %d",workshop_count[i]);
-				println(" moj on_pyrkon %d",on_pyrkon[i]);
-				for (int j = 0; j < number_of_people_per_workshop+1; j++) {
-					println(" moj my_workshops %d",my_workshops[i][j]);
-				}
-			}*/
+			sleep(2);
+			println("Odpalamy nowy Pyrkon!");
+			sleep(1);
 			changeState(beginPyrkon);
 		break;
 	    default: 

@@ -12,9 +12,9 @@ struct tagNames_t{
     const char *name;
     int tag;
 } tagNames[] = { 
-    { "pakiet aplikacyjny", APP_PKT }, 
-    { "chcę bilet", REQUEST }, 
-    { "potwierdzenie chęci biletu na warsztat", ACK }, 
+    { "pakiet aplikacyjny", APP_PACKAGE }, 
+    { "chcę bilet", REQUEST_TICKET }, 
+    { "potwierdzenie chęci biletu na warsztat", ACCEPT_TICKET }, 
     { "koniec warsztatu", FINISH }, 
     { "koniec pyrkonu", FINISH }
 };
@@ -63,7 +63,7 @@ void sendPacket(packet_t *pkt, int destination, int tag, int workshop_id_request
     pthread_mutex_lock(&clock_lMutex);
     clock_l++;
     pkt->ts = clock_l;
-    if(tag == REQUEST){
+    if(tag == REQUEST_TICKET){
         local_request_ts[rank][id_workshopu][destination] = clock_l;
     }
     pthread_mutex_unlock(&clock_lMutex);

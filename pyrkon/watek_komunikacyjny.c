@@ -26,9 +26,9 @@ void *startKomWatek(void *ptr)
         //Obsługa żądań
         //Tu by trzbea określić jakiś workshop, który jest teraz przetwarzany chyba
         id_workshopu = my_workshops[rank][workshop_count[rank]]; // <- aktualny workshop 
-        if(status.MPI_TAG == ACK){
+        if(status.MPI_TAG == ACCEPT_TICKET){
             //zakładając, że warsztaty idą od 1, a 0 to bilet na pyrkon
-            //i że mamy id workshopu w structcie pakietu
+            //i że mamy id workshopu w structcie pakietU
             if(pakiet.id_workshopu == 0){
                 //Akcept na bilet na pyrkon
             } else{
@@ -37,10 +37,10 @@ void *startKomWatek(void *ptr)
             }
         }
         //Jak zaakceptowany na aktualnie przetwarzany warsztat
-        if(status.MPI_TAG == ACK && pakiet.id_workshopu == id_workshopu){
+        if(status.MPI_TAG == ACCEPT_TICKET && pakiet.id_workshopu == id_workshopu){
             zaakceptowani[rank] += 1; //chyba git jest to
         }
-        else if(status.MPI_TAG == REQUEST){
+        else if(status.MPI_TAG == REQUEST_TICKET){
             if(pakiet.id_workshopu == 0){
                 //Request na pyrkon
             }
@@ -49,7 +49,7 @@ void *startKomWatek(void *ptr)
                 if(pakiet.ts < local_request_ts[rank][id_workshopu][status.MPI_SOURCE] || (pakiet.ts == local_request_ts[rank][id_workshopu][status.MPI_SOURCE] && status.MPI_SOURCE < rank)){
                     //Jak ma albo mniejszy timestamp niż timestamp requesta, albo jak ma taki sam ale mniejszą range
                     println("TS %d req_warszt: %d", pakiet.ts, ts_req_warsztatu);
-                    sendPacket( 0, status.MPI_SOURCE, ACK, id_workshopu);
+                    sendPacket( 0, status.MPI_SOURCE, ACCEPT_TICKET, id_workshopu);
                 }
                 else{
                     waiting_queue[id_workshopu][indexes_for_waiting_queue[id_workshopu]] = status.MPI_SOURCE;
@@ -61,7 +61,7 @@ void *startKomWatek(void *ptr)
             }
             else{
                 if(pakiet.id_workshopu != 0 || !on_pyrkon[rank]){
-                    sendPacket( 0, status.MPI_SOURCE, ACK, pakiet.id_workshopu);
+                    sendPacket( 0, status.MPI_SOURCE, ACCEPT_TICKET, pakiet.id_workshopu);
                     // println("Wysyłam ACK do %d na warsztat %d bo ubiegam sie o inny", status.MPI_SOURCE, pakiet.id_workshopu);
                 }
                 else if(pakiet.id_workshopu == 0 || on_pyrkon[rank]){
