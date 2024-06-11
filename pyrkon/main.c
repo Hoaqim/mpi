@@ -6,10 +6,10 @@ int rank, size, id_workshopu;
 pthread_t threadKom;
 
 int clock_l=0;
-int number_of_tickets=10; // liczba biletów na pyrkon
-int number_of_workshops=14; 
-int number_of_people_per_workshop = 3; 
-int number_of_participants = 14;
+int number_of_tickets=4; // liczba biletów na pyrkon
+int number_of_workshops=5; 
+int number_of_people_per_workshop = 2; 
+int number_of_participants = 4;
 int number_of_workshops_per_participant=2; 
 int zaakceptowani[MAX_PARTICIPANTS];
 int waiting_queue[MAX_WORKSHOPS + 1][MAX_PARTICIPANTS]; //waiting for ticket for warsztat or pyrkon
