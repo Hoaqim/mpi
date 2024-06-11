@@ -13,7 +13,7 @@ void *startKomWatek(void *ptr)
         MPI_Status status;
 	    debug("czekam na recv");
         MPI_Recv( &pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        
+        printf("TAG:%d ",status.MPI_TAG);
         //Przychodzi pakiet do wejścia na pyrkon, dostajemy broadcast
         pthread_mutex_lock(&clock_lMutex);
         if(clock_l >= pakiet.ts){
@@ -26,30 +26,36 @@ void *startKomWatek(void *ptr)
 
         //Obsługa żądań
         //Tu by trzbea określić jakiś workshop, który jest teraz przetwarzany chyba
-        id_workshopu = my_workshops[rank][workshop_count[rank]]; // <- aktualny workshop 
-        if(status.MPI_TAG == WANT_TICKET){
+        id_workshopu = my_workshops[rank][workshop_count[rank]]; // <- aktualny workshop
+        if(status.MPI_TAG == WANT_TICKET){ //Bilet na pyrkon
             //zakładając, że warsztaty idą od 1, a 0 to bilet na pyrkon
             //i że mamy id workshopu w structcie pakietu
             if(pakiet.id_workshopu == 0){
+                printf("Dostałem ACK od %d na pyrkon ",status.MPI_SOURCE);
                 //Akcept na bilet na pyrkon
             } else{
                 //Akcept na bilet na warsztat
-                println("Dostałem ACK od %d na warsztat %d", status.MPI_SOURCE, id_workshopu);
+                printf("Dostałem ACK od %d na warsztat %d ", status.MPI_SOURCE, id_workshopu);
+                printf("TO sie nie powinno printowac\n");
             }
         }
-        //Jak zaakceptowany na aktualnie przetwarzany warsztat
-        if(status.MPI_TAG == WANT_TICKET_ACK && pakiet.id_workshopu == id_workshopu){
+        //Jak zaakceptowany na pyrkon
+        if(status.MPI_TAG == WANT_TICKET && pakiet.id_workshopu == 0){
             zaakceptowani[rank] += 1; //chyba git jest to
+            printf("Wszedlem se na pyrkon\n");
         }
-        else if(status.MPI_TAG == WANT_TICKET){
+        else if(status.MPI_TAG == WANT_WORKSHOP_TICKET){
             if(pakiet.id_workshopu == 0){
                 //Request na pyrkon
+                printf("TO sie nie powinno printowac2\n");
             }
             else if(id_workshopu == pakiet.id_workshopu){ // jak request na aktualny workshop
                 int ts_req_warsztatu = local_request_ts[rank][id_workshopu][status.MPI_SOURCE];
+                printf("%d ts requesta ",ts_req_warsztatu);
                 if(pakiet.ts < ts_req_warsztatu || pakiet.ts == ts_req_warsztatu && status.MPI_SOURCE < rank){
                     //Jak ma albo mniejszy timestamp niż timestamp requesta, albo jak ma taki sam ale mniejszą range
-                    sendPacket( 0, status.MPI_SOURCE, WANT_TICKET_ACK, id_workshopu);
+                    sendPacket( 0, status.MPI_SOURCE, WANT_WORKSHOP_TICKET_ACK, id_workshopu);
+                    printf("Wysłane ack odnosnie warsztatu ");
                 }
                 else{
                     waiting_queue[id_workshopu][indexes_for_waiting_queue[id_workshopu]] = status.MPI_SOURCE;
@@ -60,7 +66,7 @@ void *startKomWatek(void *ptr)
             }
             else{
                 if(pakiet.id_workshopu != 0){
-                    sendPacket( 0, status.MPI_SOURCE, WANT_TICKET_ACK, pakiet.id_workshopu);
+                    sendPacket( 0, status.MPI_SOURCE, WANT_WORKSHOP_TICKET_ACK, pakiet.id_workshopu);
                     // println("Wysyłam ACK do %d na warsztat %d bo ubiegam sie o inny", status.MPI_SOURCE, pakiet.id_workshopu);
                 }
                 else if(pakiet.id_workshopu == 0){
@@ -69,7 +75,22 @@ void *startKomWatek(void *ptr)
                     // println("Dodaję %d do kolejki oczekujących na warsztat %d", status.MPI_SOURCE, pakiet.id_workshopu);
                 }
             }
-        } else if(status.MPI_TAG == PYRKON_FINISH)
+        }
+        else if(status.MPI_TAG == WANT_WORKSHOP_TICKET_ACK){
+             if(pakiet.id_workshopu == 0){
+                printf("TO sie nie powinno wyświetlać");
+                //Akcept na bilet na pyrkon
+            } else{
+                //Akcept na bilet na warsztat
+                printf("Dostałem ACK od %d na warsztat %d ", status.MPI_SOURCE, id_workshopu); 
+            }
+            if(id_workshopu == pakiet.id_workshopu){
+                zaakceptowani[rank] += 1;
+                printf("Zaakceptowany na workshop %d\n",id_workshopu);
+            } 
+        }
+        else if(status.MPI_TAG == PYRKON_FINISH)
             finished[rank] += 1;
+            //printf("Flaga, ze pyrkon zakończony, powinno być 8: %d",finished[rank]);
         }
     }

@@ -69,9 +69,9 @@ void mainLoop()
                 // perc = random()%100;
                 // if(perc<25) nwm w sumie po co to 
                 if(workshop_count[rank] == 0){
-                    printf("I want to go to Pyrkon");
+                    printf("I want to go to Pyrkon\n");
                 } else{
-                    printf("I want to get to %d workshop",id_workshopu);
+                    printf("I want to get to %d workshop\n",id_workshopu);
                 }
                 //Wysyłanie requestów
                 packet_t *pakiet = malloc(sizeof(packet_t));
@@ -80,12 +80,14 @@ void mainLoop()
                 zaakceptowani[rank] = 0;
                 for(int i =0; i<=size-1;i++){ //broadcast
                     if (i!= rank){
-                        sendPacket(pakiet,i,WANT_TICKET,pakiet->id_workshopu);
+                        // sendPacket(pakiet,i,WANT_TICKET_ACK,pakiet->id_workshopu);
                         if(pakiet->id_workshopu == 0){
-                            printf("Sending request for Pyrkon");
+                            sendPacket(pakiet,i,WANT_TICKET,pakiet->id_workshopu);
+                            printf("Sending request for Pyrkon\n");
 
                         } else{
-                            printf("Sending request for workshop %d",pakiet -> id_workshopu);
+                            printf("Sending request for workshop %d\n",pakiet -> id_workshopu);
+                            sendPacket(pakiet,i,WANT_WORKSHOP_TICKET,pakiet->id_workshopu);
                         }
                     }
                 }
@@ -101,16 +103,18 @@ void mainLoop()
                     //wejście na pyrkon
                     workshop_count[rank] += 1;
                     zaakceptowani[rank] = 0;
-                    printf("I've entered pyrkon");
+                    printf("I've entered pyrkon\n");
                     //on_pyrkon[rank] = 1; //jakaś flaga, nwm czy mamy coś takiego
                     //można wyprinotować kolejke na pyrkon
                     changeState(duringPyrkon);
                 }
                 break;
             case wantWorkshop:
-                if(zaakceptowani[rank] >= number_of_participants - number_of_people_per_workshop){
+                //printf("Chce na workshop i mam %d akcepty, a potrzebuje %d \n",zaakceptowani[rank], number_of_participants - number_of_people_per_workshop-3);
+                //sleep(1);
+                if(zaakceptowani[rank] >= number_of_participants - number_of_people_per_workshop-3){
                     //wejscie na warsztat
-                    printf("I've entered %d workshop",id_workshopu);
+                    printf("I've entered %d workshop\n",id_workshopu);
                     zaakceptowani[rank] = 0;
                     workshop_count[rank] += 1;
                     changeState(duringWorkshop);
@@ -119,32 +123,36 @@ void mainLoop()
             case duringWorkshop:
                 sleep(2); //siedi sobie w warsztacie
                 prevWorkshop = my_workshops[rank][workshop_count[rank]-1];
-                printf("Leaving %d workshop",prevWorkshop);
+                printf("Leaving %d workshop\n",prevWorkshop);
                 //tutaj jakiś broadcast że wyszedł
                 pakiet->data = perc;
-                for(int i=0;i<=number_of_participants-1;i++){ //broadcast do wszystkich na warsztacie
+                printf("Participants:%d",number_of_participants);
+                for(int i=0;i<=number_of_participants-7;i++){ //broadcast do wszystkich na warsztacie
+                    printf("Wyslane do rank:%d\n",i);
                     if(i!=rank){
                         sendPacket(0,i,WORKSHOP_FINISH,prevWorkshop);
+                        printf("Broadcast koniec warsztatu\n");
                     }
                 }
                 for(int i=0;i<indexes_for_waiting_queue[prevWorkshop];i++){
-                    sendPacket(0,waiting_queue[prevWorkshop][i],WANT_TICKET_ACK,prevWorkshop);
+                    sendPacket(0,waiting_queue[prevWorkshop][i],WANT_WORKSHOP_TICKET_ACK,prevWorkshop);
+                    printf("Wysłałem pozostałe akcepty po tym jak wyszedłem z warsztatu\n");
                     //Tu broadcast ACK dla wszystkich czekających
                 }
                 indexes_for_waiting_queue[prevWorkshop] = 0;//tu niby zerowanie tej kolejki workshopa z którego wyszedł ale nwm o co cho
                 if(workshop_count[rank]>number_of_workshops_per_participant){
                 //jak skończył cały przydział warsztatów
-                    printf("Leaving pyrkon");
+                    printf("Leaving pyrkon\n");
                     //on_pyrkon[rank] = 0; //tu ta flaga ponownie
                     //wysyłanie na broadcast, że opuszcza pyrkon dla uczestników
-                    for(int i=0; i<=number_of_participants-1;i++){
+                    for(int i=0; i<=number_of_participants-7;i++){
                         if(i!=rank){
                             sendPacket(0,i,PYRKON_FINISH,0);
                         }
                     } 
                     //wysyłanie na broadcast, że opuszcza pyrkon do całej kolejki z akceptem
                     for(int i =0;indexes_for_waiting_queue[0];i++){
-                        sendPacket(0,waiting_queue[0][i],PYRKON_FINISH,0);
+                        sendPacket(0,waiting_queue[id_workshopu][i],WANT_TICKET_ACK,0);
                     }
                     indexes_for_waiting_queue[0] = 0;
                     changeState(finishedWorkshops); //jak skonczy wszystkie
@@ -156,15 +164,17 @@ void mainLoop()
                 break;
 
             case finishedWorkshops:
-                printf("Done with Pyrkon");
+                printf("Done with Pyrkon\n");
                 //czekanie aż każdy skończy Pyrkon, nwm 
                 //coś innego niż aktywne czekanie może, na razie aktywne
                 while(finished[rank] < number_of_participants-1){
                     //czeka aż wszyscy skończą
                 }
+                printf("Wszyscy skonczyli!\n");
+                sleep(5);
                 //reset zmiennych
                 resetPyrkon();
-                printf("Pyrkon is over.");
+                printf("Pyrkon is over.\n");
                 sleep(5);
                 changeState(beginPyrkon);
                 break;
