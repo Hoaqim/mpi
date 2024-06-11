@@ -18,7 +18,7 @@ int workshop_count[MAX_PARTICIPANTS];
 int my_workshops[MAX_PARTICIPANTS][MAX_WORKSHOPS + 1];
 int local_request_ts[MAX_PARTICIPANTS][MAX_WORKSHOPS + 1][MAX_PARTICIPANTS];
 int finished[MAX_PARTICIPANTS];
-
+int on_pyrkon[MAX_PARTICIPANTS];
 
 void finalizuj()
 {
@@ -38,6 +38,7 @@ void finalizuj()
     memset(my_workshops, 0, sizeof(my_workshops));
     memset(local_request_ts, 0, sizeof(local_request_ts));
     memset(finished, 0, sizeof(finished));
+    memset(on_pyrkon, 0, sizeof(on_pyrkon));
 }
 
 void check_thread_support(int provided)

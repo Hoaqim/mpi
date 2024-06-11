@@ -34,6 +34,7 @@ extern int my_workshops[MAX_PARTICIPANTS][MAX_WORKSHOPS + 1];
 extern int on_pyrkon[MAX_PARTICIPANTS];
 extern int local_request_ts[MAX_PARTICIPANTS][MAX_WORKSHOPS + 1][MAX_PARTICIPANTS];
 extern int finished[MAX_PARTICIPANTS];
+extern int on_pyrkon[MAX_PARTICIPANTS];
 
 extern pthread_t threadKom;
 

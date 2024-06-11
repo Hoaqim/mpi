@@ -13,14 +13,11 @@ typedef struct {
 #define NITEMS 4
 
 /* Typy wiadomości */
-#define APP_PKT 1
-#define PYRKON_START 2
-#define WANT_TICKET 3
-#define WANT_TICKET_ACK 4
-#define WANT_WORKSHOP_TICKET 5
-#define WANT_WORKSHOP_TICKET_ACK 6
-#define WORKSHOP_FINISH 7
-#define PYRKON_FINISH 8
+#define ACK     1
+#define REQUEST 2
+#define RELEASE 3
+#define APP_PKT 4
+#define FINISH  5
 
 extern MPI_Datatype MPI_PAKIET_T;
 void inicjuj_typ_pakietu();
