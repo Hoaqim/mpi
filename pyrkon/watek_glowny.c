@@ -31,8 +31,9 @@ void mainLoop()
     packet_t pakiet;
     int prevWorkshop;
     MPI_Status status;
+   
     while (stan != InFinish) {
-        
+      
         switch(stan){
             //Przydałyby się stany:
             //beginPyrkon inicjalizacja eventu
@@ -44,20 +45,23 @@ void mainLoop()
             //finishedWorkshops
 
             case beginPyrkon:
-
+               
                 my_workshops[rank][0] = 0; //pyrkon
                 //rozmieszczenie uczestników po warsztatach
                 for(int i=1;i<=number_of_workshops_per_participant;i++){
+                  
                     int participant = random()%number_of_workshops+1;
                     for(int j=0;j<i;j++){
-                        participant = random()%number_of_workshops+1;
-                        j = 0;
+                        if(my_workshops[rank][j] == participant){
+                            participant = random()%number_of_workshops+1;
+                            j = 0;
+                        }
                     }
                     my_workshops[rank][i] = participant;
                 }
                 for(int i=1;i<=number_of_workshops_per_participant;i++){
                     //wypisanie wybrał jaki workshop
-                    println("%d: my workshop: %d\n",rank,my_workshops[rank][i])
+                    printf("%d: my workshop: %d\n",rank,my_workshops[rank][i]);
                 }
                 changeState(duringPyrkon); //trzeba zaimplementować funkcje do zmiany stanów, jakieś mutexy czy coś
 
@@ -65,9 +69,9 @@ void mainLoop()
                 // perc = random()%100;
                 // if(perc<25) nwm w sumie po co to 
                 if(workshop_count[rank] == 0){
-                    println("I want to go to Pyrkon")
+                    printf("I want to go to Pyrkon");
                 } else{
-                    println("I want to get to %d workshop",id_workshopu)
+                    printf("I want to get to %d workshop",id_workshopu);
                 }
                 //Wysyłanie requestów
                 packet_t *pakiet = malloc(sizeof(packet_t));
@@ -78,10 +82,10 @@ void mainLoop()
                     if (i!= rank){
                         sendPacket(pakiet,i,WANT_TICKET,pakiet->id_workshopu);
                         if(pakiet->id_workshopu == 0){
-                            println("Sending request for Pyrkon");
+                            printf("Sending request for Pyrkon");
 
                         } else{
-                            println("Sending request for workshop %d",pakiet -> id_workshopu);
+                            printf("Sending request for workshop %d",pakiet -> id_workshopu);
                         }
                     }
                 }
@@ -97,7 +101,7 @@ void mainLoop()
                     //wejście na pyrkon
                     workshop_count[rank] += 1;
                     zaakceptowani[rank] = 0;
-                    println("I've entered pyrkon");
+                    printf("I've entered pyrkon");
                     //on_pyrkon[rank] = 1; //jakaś flaga, nwm czy mamy coś takiego
                     //można wyprinotować kolejke na pyrkon
                     changeState(duringPyrkon);
@@ -106,7 +110,7 @@ void mainLoop()
             case wantWorkshop:
                 if(zaakceptowani[rank] >= number_of_participants - number_of_people_per_workshop){
                     //wejscie na warsztat
-                    println("I've entered %d workshop",id_workshopu);
+                    printf("I've entered %d workshop",id_workshopu);
                     zaakceptowani[rank] = 0;
                     workshop_count[rank] += 1;
                     changeState(duringWorkshop);
@@ -115,7 +119,7 @@ void mainLoop()
             case duringWorkshop:
                 sleep(2); //siedi sobie w warsztacie
                 prevWorkshop = my_workshops[rank][workshop_count[rank]-1];
-                println("Leaving %d workshop",prevWorkshop);
+                printf("Leaving %d workshop",prevWorkshop);
                 //tutaj jakiś broadcast że wyszedł
                 pakiet->data = perc;
                 for(int i=0;i<=number_of_participants-1;i++){ //broadcast do wszystkich na warsztacie
@@ -130,7 +134,7 @@ void mainLoop()
                 indexes_for_waiting_queue[prevWorkshop] = 0;//tu niby zerowanie tej kolejki workshopa z którego wyszedł ale nwm o co cho
                 if(workshop_count[rank]>number_of_workshops_per_participant){
                 //jak skończył cały przydział warsztatów
-                    println("Leaving pyrkon");
+                    printf("Leaving pyrkon");
                     //on_pyrkon[rank] = 0; //tu ta flaga ponownie
                     //wysyłanie na broadcast, że opuszcza pyrkon dla uczestników
                     for(int i=0; i<=number_of_participants-1;i++){
@@ -152,7 +156,7 @@ void mainLoop()
                 break;
 
             case finishedWorkshops:
-                println("Done with Pyrkon");
+                printf("Done with Pyrkon");
                 //czekanie aż każdy skończy Pyrkon, nwm 
                 //coś innego niż aktywne czekanie może, na razie aktywne
                 while(finished[rank] < number_of_participants-1){
@@ -160,7 +164,7 @@ void mainLoop()
                 }
                 //reset zmiennych
                 resetPyrkon();
-                println("Pyrkon is over.");
+                printf("Pyrkon is over.");
                 sleep(5);
                 changeState(beginPyrkon);
                 break;
