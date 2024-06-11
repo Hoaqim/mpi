@@ -30,7 +30,7 @@ void mainLoop()
     int perc;
     packet_t pakiet;
     int prevWorkshop;
-    MPI_Status = status;
+    MPI_Status status;
     while (stan != InFinish) {
         
         switch(stan){
@@ -76,7 +76,7 @@ void mainLoop()
                 zaakceptowani[rank] = 0;
                 for(int i =0; i<=size-1;i++){ //broadcast
                     if (i!= rank){
-                        sendPacket(pakiet,i,REQUEST,pakiet->id_workshopu);
+                        sendPacket(pakiet,i,WANT_TICKET,pakiet->id_workshopu);
                         if(pakiet->id_workshopu == 0){
                             println("Sending request for Pyrkon");
 
@@ -90,7 +90,7 @@ void mainLoop()
                 } else {
                     changeState(wantWorkshop);
                 }
-                free(pakiet)
+                free(pakiet);
             case wantPyrkon:
                 //Oczekiwanie na wejscie na pyrkon
                 if(zaakceptowani[rank] >= number_of_participants - number_of_tickets){
@@ -106,7 +106,7 @@ void mainLoop()
             case wantWorkshop:
                 if(zaakceptowani[rank] >= number_of_participants - number_of_people_per_workshop){
                     //wejscie na warsztat
-                    println("I've entered %d workshop",workshop_id);
+                    println("I've entered %d workshop",id_workshopu);
                     zaakceptowani[rank] = 0;
                     workshop_count[rank] += 1;
                     changeState(duringWorkshop);
@@ -120,11 +120,11 @@ void mainLoop()
                 pakiet->data = perc;
                 for(int i=0;i<=number_of_participants-1;i++){ //broadcast do wszystkich na warsztacie
                     if(i!=rank){
-                        sendPacket(0,i,RELEASE,prevWorkshop);
+                        sendPacket(0,i,WORKSHOP_FINISH,prevWorkshop);
                     }
                 }
                 for(int i=0;i<indexes_for_waiting_queue[prevWorkshop];i++){
-                    sendPacket(0,waiting_queue[prevWorkshop][i],ACK,prevWorkshop);
+                    sendPacket(0,waiting_queue[prevWorkshop][i],WANT_TICKET_ACK,prevWorkshop);
                     //Tu broadcast ACK dla wszystkich czekających
                 }
                 indexes_for_waiting_queue[prevWorkshop] = 0;//tu niby zerowanie tej kolejki workshopa z którego wyszedł ale nwm o co cho
@@ -135,12 +135,12 @@ void mainLoop()
                     //wysyłanie na broadcast, że opuszcza pyrkon dla uczestników
                     for(int i=0; i<=number_of_participants-1;i++){
                         if(i!=rank){
-                            sendPacket(0,i,FINISH,0);
+                            sendPacket(0,i,PYRKON_FINISH,0);
                         }
                     } 
                     //wysyłanie na broadcast, że opuszcza pyrkon do całej kolejki z akceptem
                     for(int i =0;indexes_for_waiting_queue[0];i++){
-                        sendPacket(0,waiting_queue[0][i],ACK,0);
+                        sendPacket(0,waiting_queue[0][i],PYRKON_FINISH,0);
                     }
                     indexes_for_waiting_queue[0] = 0;
                     changeState(finishedWorkshops); //jak skonczy wszystkie

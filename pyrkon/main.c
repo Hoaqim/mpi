@@ -3,13 +3,12 @@
 #include "watek_komunikacyjny.h"
 
 int rank, size, id_workshopu;
-state_t stan=InRun;
 pthread_t threadKom;
-pthread_mutex_t clockMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t clock_lMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t finishedMutex = PTHREAD_MUTEX_INITIALIZER;
 
 
-int clock=0;
+int clock_l=0;
 int number_of_tickets=10; // liczba biletów na pyrkon
 int number_of_workshops=14; 
 int number_of_people_per_workshop = 3; 
@@ -26,14 +25,16 @@ int finished[MAX_PARTICIPANTS];
 
 void finalizuj()
 {
-    pthread_mutex_destroy( &stateMut);
+    pthread_mutex_destroy( &finishedMutex);
+    pthread_mutex_destroy( &clock_lMutex);
+
     /* Czekamy, aż wątek potomny się zakończy */
     println("czekam na wątek \"komunikacyjny\"\n" );
     pthread_join(threadKom,NULL);
     MPI_Type_free(&MPI_PAKIET_T);
     MPI_Finalize();
 
-    memset(number_of_acks, 0, sizeof(number_of_acks));
+    memset(zaakceptowani, 0, sizeof(zaakceptowani));
     memset(waiting_queue, 0, sizeof(waiting_queue));
     memset(indexes_for_waiting_queue, 0, sizeof(indexes_for_waiting_queue));
     memset(workshop_count, 0, sizeof(workshop_count));

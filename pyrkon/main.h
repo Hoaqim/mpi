@@ -20,7 +20,7 @@
 extern int rank;
 extern int size;
 extern int id_workshopu;
-extern int clock;
+extern int clock_l;
 extern int number_of_tickets;
 extern int number_of_workshops;
 extern int number_of_people_per_workshop;
@@ -35,11 +35,9 @@ extern int on_pyrkon[MAX_PARTICIPANTS];
 extern int local_request_ts[MAX_PARTICIPANTS][MAX_WORKSHOPS + 1][MAX_PARTICIPANTS];
 extern int finished[MAX_PARTICIPANTS];
 
-typedef enum {InRun, InMonitor, InSend, InFinish} state_t;
-extern state_t stan;
 extern pthread_t threadKom;
 
-extern pthread_mutex_t clockMutex;
+extern pthread_mutex_t clock_lMutex;
 extern pthread_mutex_t finishMutex;
 
 

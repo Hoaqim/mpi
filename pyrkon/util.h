@@ -4,7 +4,7 @@
 
 /* typ pakietu */
 typedef struct {
-    int ts;       /* timestamp (clock lamporta */
+    int ts;       /* timestamp (clock_l lamporta */
     int src;  
     int id_workshopu;
     int data;     /* przykładowe pole z danymi; można zmienić nazwę na bardziej pasującą */
@@ -28,9 +28,9 @@ void inicjuj_typ_pakietu();
 /* wysyłanie pakietu, skrót: wskaźnik do pakietu (0 oznacza stwórz pusty pakiet), do kogo, z jakim typem */
 void sendPacket(packet_t *pkt, int destination, int tag, int workshop_id_request);
 
-typedef enum {beginPyrkon,duringPyrkon,wantPyrkon,wantWorkshop,duringWorkshop,finishedWorkshops};
+typedef enum {InRun, InMonitor, InSend, InFinish, beginPyrkon,duringPyrkon,wantPyrkon,wantWorkshop,duringWorkshop,finishedWorkshops} state_t;
 extern state_t stan;
-extern pthread_mutex_t steteMut;
-void changeState(state_t;)
+extern pthread_mutex_t stateMut;
+void changeState(state_t);
 
 #endif

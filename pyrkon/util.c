@@ -2,10 +2,10 @@
 #include "util.h"
 MPI_Datatype MPI_PAKIET_T;
 
-state_t stan=BeginPyrkon;
+state_t stan=beginPyrkon;
 
 pthread_mutex_t stateMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t clockMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t clock_lMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t finishedMutex = PTHREAD_MUTEX_INITIALIZER;
 
 struct tagNames_t{
@@ -61,13 +61,13 @@ void sendPacket(packet_t *pkt, int destination, int tag, int workshop_id_request
     pkt->src = rank;
     pkt->id_workshopu = workshop_id_request;
 
-    pthread_mutex_lock(&clockMutex);
-    clock++;
-    pkt->ts = clock;
+    pthread_mutex_lock(&clock_lMutex);
+    clock_l++;
+    pkt->ts = clock_l;
     if(tag == WANT_TICKET){
-        local_request_ts[rank][id_workshopu][destination] = clock;
+        local_request_ts[rank][id_workshopu][destination] = clock_l;
     }
-    pthread_mutex_unlock(&clockMutex);
+    pthread_mutex_unlock(&clock_lMutex);
 
     MPI_Send(pkt, 1, MPI_PAKIET_T, destination, tag, MPI_COMM_WORLD);
     debug("Wysyłam %s do %d\n", tag2string(tag), destination);

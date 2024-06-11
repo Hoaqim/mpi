@@ -15,18 +15,18 @@ void *startKomWatek(void *ptr)
         MPI_Recv( &pakiet, 1, MPI_PAKIET_T, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         
         //Przychodzi pakiet do wejścia na pyrkon, dostajemy broadcast
-        pthread_mutex_lock(&clockMutex);
-        if(clock >= pakiet.ts){
-            clock += 1 //wtedy dostajemy bilet i operacja zwiększa lamporta? JO
+        pthread_mutex_lock(&clock_lMutex);
+        if(clock_l >= pakiet.ts){
+            clock_l += 1; //wtedy dostajemy bilet i operacja zwiększa lamporta? JO
         } else{
-            clock = pakiet.ts + 1; 
+            clock_l = pakiet.ts + 1; 
         }
-        //aktualizacja clocka lamporta (max z własnego clocka i timestampu pakietu + 1)
-        pthread_mutex_unlock(&clockMutex)
+        //aktualizacja clock_la lamporta (max z własnego clock_la i timestampu pakietu + 1)
+        pthread_mutex_unlock(&clock_lMutex);
 
         //Obsługa żądań
         //Tu by trzbea określić jakiś workshop, który jest teraz przetwarzany chyba
-        id_workshopu = workshop[rank][workshop_count[rank]] // <- aktualny workshop 
+        id_workshopu = my_workshops[rank][workshop_count[rank]]; // <- aktualny workshop 
         if(status.MPI_TAG == WANT_TICKET){
             //zakładając, że warsztaty idą od 1, a 0 to bilet na pyrkon
             //i że mamy id workshopu w structcie pakietu
@@ -69,7 +69,7 @@ void *startKomWatek(void *ptr)
                     // println("Dodaję %d do kolejki oczekujących na warsztat %d", status.MPI_SOURCE, pakiet.id_workshopu);
                 }
             }
-        } else if(status.MPI_TAG == FINISH)
-            finished[rank] += 1
+        } else if(status.MPI_TAG == PYRKON_FINISH)
+            finished[rank] += 1;
         }
     }
