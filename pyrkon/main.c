@@ -4,9 +4,6 @@
 
 int rank, size, id_workshopu;
 pthread_t threadKom;
-pthread_mutex_t clock_lMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t finishedMutex = PTHREAD_MUTEX_INITIALIZER;
-
 
 int clock_l=0;
 int number_of_tickets=10; // liczba biletów na pyrkon
@@ -25,7 +22,7 @@ int finished[MAX_PARTICIPANTS];
 
 void finalizuj()
 {
-    pthread_mutex_destroy( &finishedMutex);
+    pthread_mutex_destroy( &finishMutex);
     pthread_mutex_destroy( &clock_lMutex);
 
     /* Czekamy, aż wątek potomny się zakończy */

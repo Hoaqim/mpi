@@ -1,10 +1,10 @@
 SOURCES=$(wildcard *.c)
 HEADERS=$(SOURCES:.c=.h)
-FLAGS=-g
+FLAGS=-DDEBUG -g
 
-all: main tags
+all: main
 
-main: $(SOURCES) $(HEADERS) Makefile
+main: $(SOURCES) $(HEADERS)
 	mpicc $(SOURCES) $(FLAGS) -o main
 
 clear: clean
@@ -12,8 +12,5 @@ clear: clean
 clean:
 	rm main a.out
 
-tags: ${SOURCES} ${HEADERS}
-	ctags -R .
-
-run: main Makefile tags
+run: main
 	mpirun -oversubscribe -np 8 ./main

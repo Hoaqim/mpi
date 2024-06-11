@@ -6,7 +6,7 @@ state_t stan=beginPyrkon;
 
 pthread_mutex_t stateMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t clock_lMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t finishedMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t finishMutex = PTHREAD_MUTEX_INITIALIZER;
 
 struct tagNames_t{
     const char *name;
