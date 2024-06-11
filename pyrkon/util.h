@@ -27,4 +27,10 @@ void inicjuj_typ_pakietu();
 
 /* wysyłanie pakietu, skrót: wskaźnik do pakietu (0 oznacza stwórz pusty pakiet), do kogo, z jakim typem */
 void sendPacket(packet_t *pkt, int destination, int tag, int workshop_id_request);
+
+typedef enum {beginPyrkon,duringPyrkon,wantPyrkon,wantWorkshop,duringWorkshop,finishedWorkshops};
+extern state_t stan;
+extern pthread_mutex_t steteMut;
+void changeState(state_t;)
+
 #endif
