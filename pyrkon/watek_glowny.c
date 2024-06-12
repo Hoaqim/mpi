@@ -30,7 +30,6 @@ void mainLoop()
 	int previous_workshop_id;
 
 	MPI_Status status;
-    // int is_message = FALSE;
     packet_t pakiet;
   
 	packet_t *pkt = malloc(sizeof(packet_t));
@@ -57,15 +56,13 @@ void mainLoop()
 		changeState(duringPyrkon);
 
 	    case duringPyrkon: 
-		
-		    debug("Perc: %d", perc);
 			if(workshop_count[rank] == 0){
 				println("Chcę wejść na pyrkon")
 			}
 			else{
 				println("Chcę wejść na warsztat %d", id_workshopu)
 			}
-		    debug("Zmieniam stan na wysyłanie");
+
 		    packet_t *pkt = malloc(sizeof(packet_t));
 		    pkt->data = perc;
 			pkt->id_workshopu = my_workshops[rank][workshop_count[rank]];
@@ -73,12 +70,6 @@ void mainLoop()
 		    for (int i=0;i<=size-1;i++)
 			if (i!=rank){
 			    sendPacket(pkt, i, REQUEST_TICKET, pkt->id_workshopu);
-				if(pkt->id_workshopu == 0){
-					//request na bilet na pyrkon
-				}
-				else{
-					// request na bilet na warsztat
-				}
 			}
 			if(workshop_count[rank] == 0){
 				changeState(wantPyrkon);
@@ -88,7 +79,6 @@ void mainLoop()
 			}
 		    free(pkt);
 		
-		//debug("Skończyłem myśleć");
 		break;
 
 	    case wantPyrkon:
@@ -111,8 +101,7 @@ void mainLoop()
 		}
 		break;
 		case duringWorkshop:
-			sleep(2);
-		    //debug("Perc: %d", perc);
+			sleep(5);
 			previous_workshop_id = my_workshops[rank][workshop_count[rank]-1];
 		    println("Wychodzę z warsztatu %d", previous_workshop_id)
 		    debug("Zmieniam stan na wysyłanie");
@@ -137,7 +126,6 @@ void mainLoop()
 					}
 				}
 				for (int i=0;i<indexes_for_waiting_queue[0];i++){
-					// println("wysylam ACK na pyrkon do %d", i);
 					sendPacket( 0, waiting_queue[id_workshopu][i], ACCEPT_TICKET, 0); //accept dla wszystkich czekajacych na pyrkon
 				}
 				indexes_for_waiting_queue[0] = 0;
@@ -146,14 +134,12 @@ void mainLoop()
 			else{
 				changeState( duringPyrkon );
 			}
-		    // free(pkt);
 		break;
 		case finishedWorkshops:
 			println("Wychodzę z Pyrkonu i idę do domu.")
 			while(finished[rank] < number_of_participants-1){
-
+				//wait for everyone to leave
 			}
-			
 			reset_variables();
 			println("KONIEC PYRKONU!!!")
 			sleep(2);
