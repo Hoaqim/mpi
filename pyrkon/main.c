@@ -6,10 +6,10 @@ int rank, size, id_workshopu;
 pthread_t threadKom;
 
 int clock_l=0;
-int number_of_tickets=10; // liczba biletów na pyrkon
-int number_of_workshops=14; 
-int number_of_people_per_workshop = 3; 
-int number_of_participants = 14;
+int number_of_tickets=4; // liczba biletów na pyrkon
+int number_of_workshops=5; 
+int number_of_people_per_workshop = 2; 
+int number_of_participants = 4;
 int number_of_workshops_per_participant=2; 
 int zaakceptowani[MAX_PARTICIPANTS];
 int waiting_queue[MAX_WORKSHOPS + 1][MAX_PARTICIPANTS]; //waiting for ticket for warsztat or pyrkon
@@ -18,7 +18,7 @@ int workshop_count[MAX_PARTICIPANTS];
 int my_workshops[MAX_PARTICIPANTS][MAX_WORKSHOPS + 1];
 int local_request_ts[MAX_PARTICIPANTS][MAX_WORKSHOPS + 1][MAX_PARTICIPANTS];
 int finished[MAX_PARTICIPANTS];
-
+int on_pyrkon[MAX_PARTICIPANTS];
 
 void finalizuj()
 {
@@ -38,6 +38,7 @@ void finalizuj()
     memset(my_workshops, 0, sizeof(my_workshops));
     memset(local_request_ts, 0, sizeof(local_request_ts));
     memset(finished, 0, sizeof(finished));
+    memset(on_pyrkon, 0, sizeof(on_pyrkon));
 }
 
 void check_thread_support(int provided)
