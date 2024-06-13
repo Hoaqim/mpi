@@ -1,7 +1,7 @@
-Michał Domasik 151905, Miłosz Koźlicki 151
+Michał Domasik 151905, Miłosz Koźlicki 151873
 
 #OPIS ALGORYTMU:
-Michał Domasik 151905, Miłosz Koźlicki 151
+Michał Domasik 151905, Miłosz Koźlicki 151873
 
 #OPIS ALGORYTMU:
 
